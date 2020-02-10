@@ -3,3 +3,11 @@ include header
 h1 node-shop
 p #{foo}
 h3 #{bar}
+ul
+    each val, idx in goods
+        li
+            p #{val.name}
+            img(
+                src="img/" + val.image
+                class="img"
+            )
