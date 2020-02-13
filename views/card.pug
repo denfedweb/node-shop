@@ -1,10 +1,11 @@
 div(class="col s4")
     div(class="card")
-        div(class="card-image waves-effect waves-block waves-light")
-            img(class="img-card" src="img/" + val.image)
-        div(class="card-content")
-            span(class="grey-text text-darken-4") #{val.name}
-            p
-                a(href="#") link
-            span(class="card-price") #{val.cost}
-            a(class="waves-effect waves-light btn" data-goods_id=val.id) buy
+        a(href="goods?id="+val.id data-goods_id=val.id)
+            div(class="card-image waves-effect waves-block waves-light")
+                img(class="img-card" src="img/" + val.image)
+            div(class="card-content")
+                span(class="grey-text text-darken-4") #{val.name}
+        div(class="center-align")
+            span(class="card-price") #{val.cost} mdl
+            br
+            a(href="" class="waves-effect waves-light btn add-to-cart" data-goods_id=val.id) в корзину
