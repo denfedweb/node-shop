@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 3100;
+const PORT = 3200;
 
 //public - name static files
 
@@ -26,23 +26,24 @@ app.listen(PORT || 3000, ()=>{
 });
 
 app.get('/', (req, res) => {
-    con.query(
-        'SELECT * FROM goods',
-        function (err, response) {
-            if(err) throw err;
-
-            // console.log(res);
-            const goods = {};
-            response.forEach((item, idx)=>{
-               goods[idx] = item;
-            });
-            res.render('main', {
-                foo: 4,
-                bar: 7,
-                goods: JSON.parse(JSON.stringify(goods))
-            });
-        }
-    );
+    let cat = new Promise((resolve, reject) =>{
+        con.query('select id,name, cost, image, category from (select id,name,cost,image,category, if(if(@curr_category != category, @curr_category := category, \'\') != \'\', @k := 0, @k := @k + 1) as ind   from goods, ( select @curr_category := \'\' ) v ) goods where ind < 3', (err, result)=>{
+            if(err) return reject(err);
+            resolve(result);
+        });
+    });
+    let catDescription = new Promise((resolve, reject) =>{
+        con.query('select * from category', (err, result)=>{
+            if(err) return reject(err);
+            resolve(result);
+        });
+    });
+    Promise.all([cat, catDescription]).then((value)=>{
+        res.render('index', {
+            goods: JSON.parse(JSON.stringify(value[0])),
+            cat: JSON.parse(JSON.stringify(value[1]))
+        });
+    });
 });
 
 app.get('/cat', (req, res) => {
@@ -102,5 +103,4 @@ app.post('/get-goods-info', (req, res) => {
     } else {
         res.send('0');
     }
-
 });
