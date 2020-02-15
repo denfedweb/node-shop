@@ -52,7 +52,9 @@ function showCart(data){
     }
     out += `<tr><td>Total: ${total}</td></tr>`;
     out += '</tbody></table>';
-    document.querySelector("#cart-nav").innerHTML = out;
+    document.querySelectorAll(".cart-nav").forEach((cart)=>{
+       cart.innerHTML = out;
+    });
     document.querySelectorAll('.cart-minus').forEach((item)=>{
         item.onclick = cartMinus;
     });

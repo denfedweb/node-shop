@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const nodemailer = require("nodemailer");
 const PORT = 3200;
 
 //public - name static files
@@ -81,6 +82,11 @@ app.get('/goods', (req, res) => {
     });
 });
 
+app.get('/order', (req, res) => {
+    // console.log(res);
+   res.render('order');
+});
+
 app.post('/get-category-list', (req, res) => {
   // console.log(req.body);
     con.query('SELECT id, category FROM category', (err, result)=>{
@@ -104,3 +110,55 @@ app.post('/get-goods-info', (req, res) => {
         res.send('0');
     }
 });
+
+app.post('/finish-order', (req, res) => {
+    if(req.body.key.length !== 0){
+        let key = Object.keys(req.body.key);
+        con.query('SELECT id, name, cost FROM goods WHERE id IN ('+ key.join(",") +')', (err, result)=>{
+            if (err) throw err;
+            sendMail(req.body, result).catch(console.error);
+            res.send('1');
+        });
+    }else{
+        res.send('0');
+    }
+});
+
+async function sendMail(data, result) {
+    let res = `<h2>Order in node shop</h2>`;
+    let total = 0;
+    result.forEach((item)=>{
+        res += `<p>${item.name} - ${data.key[item['id']]} - ${item['cost'] * data.key[item['id']]} mdl</p>`;
+        total += item['cost'] * data.key[item['id']];
+    });
+    res += '<hr>';
+    res += `Total: ${total} mdl`;
+    res += `<hr> Phone: ${data.phone}`;
+    res += `<hr> Name: ${data.username}`;
+    res += `<hr> Address: ${data.address}`;
+    res += `<hr> Email: ${data.email}`;
+
+    let testAccount = await nodemailer.createTestAccount();
+
+    let transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: testAccount.user, // generated ethereal user
+            pass: testAccount.pass // generated ethereal password
+        }
+    });
+    let mailOption = {
+        from : '<denfedweb@mail.ru>',
+        to: "denfedweb@mail.ru, " + data.email,
+        subject: "Node shop order",
+        test: "order",
+        html: res
+    }
+
+    let info = await transporter.sendMail(mailOption);
+    console.log(info.messageId);
+    console.log(nodemailer.getTestMessageUrl(info));
+    return true;
+}
